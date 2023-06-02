@@ -7,20 +7,30 @@ package main
 
 import (
 	"context"
+	"github.com/joho/godotenv"
 	"log"
+	"os"
 	"time"
 
-	pb "productinfo/client/ecommerce"
 	"google.golang.org/grpc"
+	pb "productinfo/client/ecommerce"
 )
 
 const (
-	address = "localhost:50051"
+	defaultAddress = "localhost:50051"
 )
+
+func determineAddress() string {
+	err := godotenv.Load()
+	if err != nil {
+		return defaultAddress
+	}
+	return os.Getenv("ADDRESS")
+}
 
 func main() {
 	// Set up a connection to the server.
-	conn, err := grpc.Dial(address, grpc.WithInsecure())
+	conn, err := grpc.Dial(determineAddress(), grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}

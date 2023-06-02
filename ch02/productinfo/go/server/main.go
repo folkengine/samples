@@ -7,18 +7,20 @@ package main
 
 import (
 	"context"
-	"log"
-	"net"
-
 	"github.com/gofrs/uuid"
-	pb "productinfo/server/ecommerce"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"log"
+	"net"
+	"os"
+	pb "productinfo/server/ecommerce"
+
+	"github.com/joho/godotenv"
 )
 
 const (
-	port = ":50051"
+	defaultPort = ":50051"
 )
 
 // server is used to implement ecommerce/product_info.
@@ -26,9 +28,17 @@ type server struct {
 	productMap map[string]*pb.Product
 }
 
+func determinePort() string {
+	err := godotenv.Load()
+	if err != nil {
+		return defaultPort
+	}
+	return os.Getenv("PORT")
+}
+
 // AddProduct implements ecommerce.AddProduct
 func (s *server) AddProduct(ctx context.Context,
-							in *pb.Product) (*pb.ProductID, error) {
+	in *pb.Product) (*pb.ProductID, error) {
 	out, err := uuid.NewV4()
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Error while generating Product ID", err)
@@ -53,7 +63,7 @@ func (s *server) GetProduct(ctx context.Context, in *pb.ProductID) (*pb.Product,
 }
 
 func main() {
-	lis, err := net.Listen("tcp", port)
+	lis, err := net.Listen("tcp", determinePort())
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
